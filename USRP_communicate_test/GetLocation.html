@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GPS 軌跡紀錄器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 針對手機優化的樣式微調 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: manipulation; /* 防止雙擊縮放 */
+        }
+        input[type=range] {
+            height: 28px;
+            -webkit-appearance: none;
+            margin: 10px 0;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            animate: 0.2s;
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .data-row:nth-child(even) {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md flex-none">
+        <h1 class="text-xl font-bold text-center">GPS 精密紀錄器</h1>
+        <!-- 改用 flex 讓按鈕可以放入狀態列 -->
+        <div id="status-bar-container" class="mt-2 text-xs text-center text-blue-100 flex flex-col items-center justify-center min-h-[1.5em]">
+            <span id="status-text">系統初始化中...</span>
+            <div id="status-actions" class="mt-1 hidden"></div>
+        </div>
+    </header>
+
+    <!-- Main Control Area -->
+    <main class="flex-grow p-4 overflow-y-auto flex flex-col gap-4">
+        
+        <!-- Live Data Card -->
+        <div class="bg-white rounded-xl shadow p-4 relative overflow-hidden">
+            <!-- Mock Mode Indicator -->
+            <div id="mock-badge" class="hidden absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 shadow-sm">
+                模擬數據中
+            </div>
+
+            <h2 class="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide border-b pb-1">即時平均座標</h2>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <div class="text-xs text-gray-400">緯度 (Lat)</div>
+                    <div id="disp-lat" class="text-lg font-mono font-bold text-gray-800">--</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400">經度 (Lon)</div>
+                    <div id="disp-lon" class="text-lg font-mono font-bold text-gray-800">--</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400">高度 (Alt)</div>
+                    <div id="disp-alt" class="text-lg font-mono font-bold text-gray-800">--</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400">誤差 (Accuracy)</div>
+                    <div id="disp-acc" class="text-lg font-mono text-gray-600">-- m</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="bg-white rounded-xl shadow p-4 space-y-4">
+            <div>
+                <label class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-semibold text-gray-700">紀錄間隔</span>
+                    <span id="interval-display" class="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">1.0 秒</span>
+                </label>
+                <input type="range" id="interval-slider" min="0.1" max="5.0" step="0.1" value="1.0" class="w-full">
+                <p class="text-xs text-gray-400 mt-1">設定越短，檔案越大且越耗電。</p>
+            </div>
+
+            <!-- New Permission Button -->
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <span class="text-sm font-semibold text-gray-700">GPS 連線狀態</span>
+                <button id="btn-refresh-gps" class="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 active:bg-blue-300 px-3 py-2 rounded-lg font-bold transition flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    檢查 / 重試
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="btn-start" class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                開始紀錄
+            </button>
+            <button id="btn-stop" disabled class="bg-red-400 text-white font-bold py-3 px-4 rounded-xl shadow cursor-not-allowed transition flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                結束
+            </button>
+        </div>
+
+        <button id="btn-export" disabled class="w-full bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            匯出 CSV
+        </button>
+
+        <!-- Data Log Preview -->
+        <div class="flex-grow bg-white rounded-xl shadow flex flex-col overflow-hidden min-h-[200px]">
+            <div class="p-2 border-b bg-gray-50 flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-500 uppercase">最新紀錄 (預覽)</span>
+                <span id="record-count" class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">0 筆</span>
+            </div>
+            <div id="log-container" class="flex-grow overflow-y-auto p-0 text-xs font-mono">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="p-2 border-b">時間</th>
+                            <th class="p-2 border-b">Lat</th>
+                            <th class="p-2 border-b">Lon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body">
+                        <!-- Logs go here -->
+                        <tr><td colspan="3" class="p-4 text-center text-gray-400 italic">尚未開始紀錄</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 變數初始化 ---
+        let watchId = null;
+        let recordIntervalId = null;
+        let isRecording = false;
+        let wakeLock = null;
+
+        // 模擬模式相關
+        let isMockMode = false;
+        let mockIntervalId = null;
+        const MOCK_START_LAT = 25.033964; // 台北 101 附近
+        const MOCK_START_LON = 121.564468;
+        let mockLat = MOCK_START_LAT;
+        let mockLon = MOCK_START_LON;
+
+        // 儲存原始 GPS 資料的緩衝區 (用於平滑化)
+        const GPS_BUFFER_SIZE = 5; 
+        let gpsBuffer = []; 
+
+        // 最終紀錄的資料
+        let recordedData = [];
+
+        // UI 元素
+        const els = {
+            slider: document.getElementById('interval-slider'),
+            intervalDisplay: document.getElementById('interval-display'),
+            btnStart: document.getElementById('btn-start'),
+            btnStop: document.getElementById('btn-stop'),
+            btnExport: document.getElementById('btn-export'),
+            btnRefreshGps: document.getElementById('btn-refresh-gps'),
+            statusText: document.getElementById('status-text'),
+            statusActions: document.getElementById('status-actions'),
+            dispLat: document.getElementById('disp-lat'),
+            dispLon: document.getElementById('disp-lon'),
+            dispAlt: document.getElementById('disp-alt'),
+            dispAcc: document.getElementById('disp-acc'),
+            logBody: document.getElementById('log-body'),
+            count: document.getElementById('record-count'),
+            mockBadge: document.getElementById('mock-badge')
+        };
+
+        // --- 設定與工具函式 ---
+
+        // 顯示狀態輔助函式
+        function setStatus(text, showMockButton = false) {
+            els.statusText.innerHTML = text;
+            els.statusActions.innerHTML = '';
+            els.statusActions.classList.add('hidden');
+
+            if (showMockButton) {
+                const btn = document.createElement('button');
+                btn.className = "bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-bold shadow animate-pulse";
+                btn.textContent = "開啟模擬模式 (測試用)";
+                btn.onclick = startMockGps;
+                els.statusActions.appendChild(btn);
+                els.statusActions.classList.remove('hidden');
+            }
+        }
+
+        // 格式化時間戳記
+        function getFormattedTimestamp() {
+            const now = new Date();
+            let iso = now.toISOString(); 
+            iso = iso.replace('Z', '');
+            if (!iso.includes('.')) {
+                iso += '.000000';
+            } else {
+                const parts = iso.split('.');
+                let frac = parts[1];
+                while (frac.length < 6) frac += '0';
+                iso = `${parts[0]}.${frac}`;
+            }
+            return iso;
+        }
+
+        // 滑動視窗平均算法
+        function getAveragePosition() {
+            // 如果是模擬模式，直接回傳最後一筆資料 (模擬資料本身就是平滑的)
+            if (isMockMode && gpsBuffer.length > 0) {
+                return gpsBuffer[gpsBuffer.length - 1];
+            }
+
+            if (gpsBuffer.length === 0) return null;
+
+            let sumLat = 0, sumLon = 0, sumAlt = 0;
+            let count = gpsBuffer.length;
+            let validAltCount = 0;
+
+            for (let p of gpsBuffer) {
+                sumLat += p.latitude;
+                sumLon += p.longitude;
+                if (p.altitude !== null) {
+                    sumAlt += p.altitude;
+                    validAltCount++;
+                }
+            }
+
+            return {
+                latitude: sumLat / count,
+                longitude: sumLon / count,
+                altitude: validAltCount > 0 ? sumAlt / validAltCount : 0
+            };
+        }
+
+        // --- GPS 監聽 ---
+        function startGpsWatch() {
+            // 停止模擬
+            stopMockGps();
+
+            // 清除舊監聽
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            if (!navigator.geolocation) {
+                setStatus("錯誤：此瀏覽器不支援 GPS 功能", true);
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            try {
+                setStatus("正在請求 GPS 權限與訊號...");
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const coords = position.coords;
+                        
+                        els.dispLat.textContent = coords.latitude.toFixed(6);
+                        els.dispLon.textContent = coords.longitude.toFixed(6);
+                        els.dispAlt.textContent = coords.altitude ? coords.altitude.toFixed(1) : "0";
+                        els.dispAcc.textContent = `${Math.round(coords.accuracy)} m`;
+                        
+                        if (isRecording) {
+                            setStatus("● 錄製中 - GPS 訊號良好");
+                        } else {
+                            setStatus("待機中 - GPS 訊號已鎖定");
+                        }
+
+                        // 加入緩衝區
+                        gpsBuffer.push(coords);
+                        if (gpsBuffer.length > GPS_BUFFER_SIZE) {
+                            gpsBuffer.shift();
+                        }
+                    },
+                    (error) => {
+                        let msg = "GPS 錯誤: ";
+                        let showMock = false;
+
+                        // 判斷是否為預覽環境的權限策略錯誤
+                        const isPolicyError = error.message && error.message.includes("permissions policy");
+
+                        if (error.code === 1) { // PERMISSION_DENIED
+                            if (isPolicyError) {
+                                msg = "權限錯誤：預覽環境封鎖了 GPS";
+                                showMock = true;
+                            } else {
+                                msg = "權限被拒絕：請至設定開啟權限";
+                            }
+                        } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                            msg = "無法偵測位置 (請移至戶外)";
+                            showMock = true; // 訊號收不到也可以用 mock 測試
+                        } else if (error.code === 3) { // TIMEOUT
+                            msg = "定位逾時 (訊號微弱)";
+                        } else {
+                            msg = `未知錯誤 (${error.message})`;
+                        }
+                        
+                        setStatus(msg, showMock);
+                        console.error("GPS Watch Error:", error.message, "(Code: " + error.code + ")");
+                    },
+                    options
+                );
+            } catch (e) {
+                setStatus("啟動 GPS 失敗: " + e.message, true);
+                console.error("Critical GPS Error:", e);
+            }
+        }
+
+        // --- 模擬 GPS 模式 (Mock Mode) ---
+        function startMockGps() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            isMockMode = true;
+            els.mockBadge.classList.remove('hidden');
+            setStatus("模擬模式已啟動 - 產生虛擬數據中");
+            
+            // 模擬走圓圈
+            let angle = 0;
+            const radius = 0.0005; // 約 50m 半徑
+
+            // 立即執行一次
+            updateMockData(angle);
+
+            mockIntervalId = setInterval(() => {
+                angle += 0.1;
+                updateMockData(angle);
+            }, 1000);
+
+            function updateMockData(a) {
+                const lat = MOCK_START_LAT + Math.sin(a) * radius;
+                const lon = MOCK_START_LON + Math.cos(a) * radius;
+                
+                const mockCoords = {
+                    latitude: lat,
+                    longitude: lon,
+                    altitude: 10 + Math.random() * 2,
+                    accuracy: 5
+                };
+
+                els.dispLat.textContent = mockCoords.latitude.toFixed(6);
+                els.dispLon.textContent = mockCoords.longitude.toFixed(6);
+                els.dispAlt.textContent = mockCoords.altitude.toFixed(1);
+                els.dispAcc.textContent = "Sim";
+
+                gpsBuffer.push(mockCoords);
+                if (gpsBuffer.length > GPS_BUFFER_SIZE) {
+                    gpsBuffer.shift();
+                }
+            }
+        }
+
+        function stopMockGps() {
+            isMockMode = false;
+            els.mockBadge.classList.add('hidden');
+            if (mockIntervalId) {
+                clearInterval(mockIntervalId);
+                mockIntervalId = null;
+            }
+        }
+
+
+        // --- 檢查權限與刷新邏輯 ---
+        function refreshGpsPermission() {
+            if (isMockMode) {
+                if(confirm("要關閉模擬模式並重試真實 GPS 嗎？")) {
+                    startGpsWatch();
+                }
+                return;
+            }
+
+            setStatus("正在檢查權限狀態...");
+            
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+                    console.log('GPS Permission State:', result.state);
+                    if (result.state === 'granted') {
+                        setStatus("權限已授權，正在重新啟動 GPS...");
+                        startGpsWatch();
+                    } else if (result.state === 'prompt') {
+                        setStatus("請在瀏覽器提示中點選「允許」...");
+                        startGpsWatch();
+                    } else if (result.state === 'denied') {
+                        alert("GPS 權限被拒絕。請檢查瀏覽器設定，或使用模擬模式測試功能。");
+                        setStatus("權限被拒絕", true);
+                    }
+                }).catch(err => {
+                    startGpsWatch();
+                });
+            } else {
+                startGpsWatch();
+            }
+        }
+
+
+        // --- 螢幕恆亮 (Wake Lock) ---
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock active');
+                } catch (err) {
+                    console.log(`Wake Lock Error: ${err.name}, ${err.message}`);
+                }
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release()
+                    .then(() => { wakeLock = null; })
+                    .catch(err => console.log('Release Wake Lock Error:', err));
+            }
+        }
+
+        // --- 錄製邏輯 ---
+        function recordPoint() {
+            const avgPos = getAveragePosition();
+            
+            if (!avgPos) return;
+
+            const timestamp = getFormattedTimestamp();
+            const record = {
+                time_stamp: timestamp,
+                lat: avgPos.latitude.toFixed(7), 
+                lon: avgPos.longitude.toFixed(7),
+                alt: avgPos.altitude.toFixed(2)
+            };
+
+            recordedData.push(record);
+
+            const row = document.createElement('tr');
+            row.className = 'data-row border-b border-gray-100';
+            row.innerHTML = `
+                <td class="p-2">${timestamp.split('T')[1] || timestamp}</td>
+                <td class="p-2 text-gray-600">${record.lat}</td>
+                <td class="p-2 text-gray-600">${record.lon}</td>
+            `;
+            els.logBody.insertBefore(row, els.logBody.firstChild);
+            
+            if (els.logBody.children.length > 50) {
+                els.logBody.removeChild(els.logBody.lastChild);
+            }
+
+            els.count.textContent = `${recordedData.length} 筆`;
+        }
+
+        // --- 匯出 CSV ---
+        function exportCsv() {
+            if (recordedData.length === 0) {
+                alert("沒有資料可匯出");
+                return;
+            }
+
+            let csvContent = "time_stamp,lat,lon,alt\n";
+
+            recordedData.forEach(row => {
+                csvContent += `${row.time_stamp},${row.lat},${row.lon},${row.alt}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            const nowStr = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `gps_track_${nowStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 事件綁定 ---
+
+        els.slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            els.intervalDisplay.textContent = `${val.toFixed(1)} 秒`;
+            
+            if (isRecording) {
+                clearInterval(recordIntervalId);
+                recordIntervalId = setInterval(recordPoint, val * 1000);
+            }
+        });
+
+        els.btnRefreshGps.addEventListener('click', refreshGpsPermission);
+
+        els.btnStart.addEventListener('click', () => {
+            if (isRecording) return;
+            
+            recordedData = [];
+            els.logBody.innerHTML = '';
+            els.count.textContent = '0 筆';
+            
+            isRecording = true;
+            
+            els.btnStart.disabled = true;
+            els.btnStart.classList.add('bg-gray-400', 'cursor-not-allowed');
+            els.btnStart.classList.remove('bg-green-500', 'hover:bg-green-600');
+            
+            els.btnStop.disabled = false;
+            els.btnStop.classList.remove('bg-red-400', 'cursor-not-allowed');
+            els.btnStop.classList.add('bg-red-600', 'hover:bg-red-700', 'active:bg-red-800');
+
+            els.btnExport.disabled = true;
+
+            requestWakeLock();
+
+            const intervalMs = parseFloat(els.slider.value) * 1000;
+            recordPoint(); 
+            recordIntervalId = setInterval(recordPoint, intervalMs);
+        });
+
+        els.btnStop.addEventListener('click', () => {
+            if (!isRecording) return;
+
+            isRecording = false;
+            clearInterval(recordIntervalId);
+            releaseWakeLock();
+
+            els.btnStart.disabled = false;
+            els.btnStart.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            els.btnStart.classList.add('bg-green-500', 'hover:bg-green-600');
+
+            els.btnStop.disabled = true;
+            els.btnStop.classList.add('bg-red-400', 'cursor-not-allowed');
+            els.btnStop.classList.remove('bg-red-600', 'hover:bg-red-700');
+
+            els.btnExport.disabled = false;
+            
+            els.statusText.textContent = `測量完成，共 ${recordedData.length} 筆資料。請匯出。`;
+        });
+
+        els.btnExport.addEventListener('click', exportCsv);
+
+        startGpsWatch();
+
+    </script>
+</body>
+</html>
