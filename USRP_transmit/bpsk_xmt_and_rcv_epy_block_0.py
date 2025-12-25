@@ -36,6 +36,8 @@ class blk(gr.sync_block):
         self._debug = 0     # debug
         self.data = ""
 
+        self.set_min_noutput_items(4096)
+        
         if (os.path.exists(self.FileName)):
             # open input file
             self.f_in = open (self.FileName, 'rb')

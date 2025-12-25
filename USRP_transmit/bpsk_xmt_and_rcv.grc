@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"./inputs/input_img.png"'
+    value: '"./inputs/input_img_sheep.jpg"'
   states:
     bus_sink: false
     bus_source: false
@@ -61,7 +61,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"./outputs/output_bpsk.png"'
+    value: '"./outputs/output_bpsk.jpg"'
   states:
     bus_sink: false
     bus_source: false
@@ -243,7 +243,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 256e3
+    value: 1024e3
   states:
     bus_sink: false
     bus_source: false
@@ -785,7 +785,7 @@ blocks:
   id: epy_block
   parameters:
     FileName: Input_File_Path
-    Pkt_len: '256'
+    Pkt_len: '1024'
     _source_code: "\"\"\"\nEmbedded Python Block: File Source to Tagged Stream\n\"\
       \"\"\n\nimport numpy as np\nfrom gnuradio import gr\nimport time\nimport pmt\n\
       import os.path\nimport sys\nimport base64\n\n\"\"\"\nState definitions\n   \
@@ -797,16 +797,17 @@ blocks:
       \   \n        self.FileName = FileName\n        self.Pkt_len = Pkt_len\n   \
       \     self.state = 0      # idle state\n        self.pre_count = 0\n       \
       \ self.indx = 0\n        self._debug = 0     # debug\n        self.data = \"\
-      \"\n\n        if (os.path.exists(self.FileName)):\n            # open input\
-      \ file\n            self.f_in = open (self.FileName, 'rb')\n            self._eof\
-      \ = False\n            if (self._debug):\n                print (\"[EPB encode]\
-      \ File name:\", self.FileName)\n            self.state = 1\n        else:\n\
-      \            print('[EPB encode] ', self.FileName, 'does not exist')\n     \
-      \       self._eof = True\n            self.state = 0\n\n        self.char_list\
-      \ = [37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
-      \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]\n        self.c_len\
-      \ = len (self.char_list)\n        print (\"[EPB encode] c_len: \", self.c_len)\n\
-      \        self.filler = [37,85,85,85, 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
+      \"\n\n        self.set_min_noutput_items(4096)\n        \n        if (os.path.exists(self.FileName)):\n\
+      \            # open input file\n            self.f_in = open (self.FileName,\
+      \ 'rb')\n            self._eof = False\n            if (self._debug):\n    \
+      \            print (\"[EPB encode] File name:\", self.FileName)\n          \
+      \  self.state = 1\n        else:\n            print('[EPB encode] ', self.FileName,\
+      \ 'does not exist')\n            self._eof = True\n            self.state =\
+      \ 0\n\n        self.char_list = [37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
+      \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
+      \ 85,85,85,93]\n        self.c_len = len (self.char_list)\n        print (\"\
+      [EPB encode] c_len: \", self.c_len)\n        self.filler = [37,85,85,85, 35,69,79,70,\
+      \ 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
       \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]\n        self.f_len\
       \ = len (self.filler)\n\n    def forecast(self, noutput_items, ninput_items_required):\n\
       \        # \u544A\u8A34 scheduler \u6211\u5011\u9700\u8981\u81F3\u5C11 512 bytes\

@@ -15,11 +15,12 @@ class blk(gr.sync_block):
         self.set_msg_handler(pmt.intern('msg_in'), self.handle_msg)
 
     def handle_msg(self, msg):
-        _debug = 2          # set to zero to turn off diagnostics
+        _debug = 2
+          # set to zero to turn off diagnostics
         try:
             buff = pmt.to_python(pmt.cdr(msg))
         except Exception as e:
-            gr.log.error("Error with message conversion: %s" % str(e))
+            gr.log.error("[EPB decode] Error with message conversion: %s" % str(e))
             return
         b_len = len (buff)
 
@@ -27,16 +28,21 @@ class blk(gr.sync_block):
             if ((buff[4] == 35) and (b_len < 52)):     # filename starts in buff[8]
                 print ("End of text")
                 if (_debug == 2):
-                    print ("buff =", buff, b_len)
+                    print ("[EPB decode] buff =", buff, b_len)
                 intlist = np.frombuffer(buff, dtype=np.uint8)
                 ofn = ''.join(chr(i) for i in intlist[8:])  
-                print ("Transmitted file name:",ofn)
+                print ("[EPB decode] Transmitted file name:",ofn)
 
         else:
             # decode Base64
-            data = base64.b64decode(buff)
+            try:
+                data = base64.b64decode(buff)
+            except Exception as e:
+                # 如果解碼失敗（通常是因為雜訊），就忽略這個封包
+                print("[EPB decode] Corrupt packet ignored") 
+                return
             if (_debug == 1):
-                print ("data =", data)
+                print ("[EPB decode] data =", data)
             pdu = pmt.cons(pmt.PMT_NIL, pmt.init_u8vector(len(data),list(data)))
             self.message_port_pub(pmt.intern('msg_out'), pdu)
 

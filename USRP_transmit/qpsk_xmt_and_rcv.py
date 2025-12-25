@@ -78,7 +78,7 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.access_key = access_key = '11100001010110101110100010010011'
         self.x310_ID = x310_ID = "serial=30969D2"
         self.variable_adaptive_algorithm_0 = variable_adaptive_algorithm_0 = digital.adaptive_algorithm_cma( qpsk, .0005, 4).base()
-        self.usrp_rate = usrp_rate = 1024e3
+        self.usrp_rate = usrp_rate = 4096e3
         self.tx_gain = tx_gain = 50
         self.thresh = thresh = 1
         self.rx_gain = rx_gain = 50
@@ -90,10 +90,10 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.excess_bw = excess_bw = 0.35
         self.center_freq = center_freq = 2.4e9
         self.b210_ID_0 = b210_ID_0 = "serial=327543A"
-        self.Output_File_Path = Output_File_Path = "./outputs/output_qpsk.jpg"
+        self.Output_File_Path = Output_File_Path = "./outputs/output_qpsk.png"
         self.NS = NS = 32768
         self.MTU = MTU = 1500
-        self.Input_File_Path = Input_File_Path = "./inputs/input_img_sheep.jpg"
+        self.Input_File_Path = Input_File_Path = "./inputs/input_img.png"
 
         ##################################################
         # Blocks
@@ -423,7 +423,7 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.pdu_tagged_stream_to_pdu_0 = pdu.tagged_stream_to_pdu(gr.types.byte_t, 'packet_len')
         self.pdu_pdu_to_tagged_stream_0 = pdu.pdu_to_tagged_stream(gr.types.byte_t, 'packet_len')
         self.epy_block_0_0 = epy_block_0_0.blk()
-        self.epy_block_0 = epy_block_0.blk(FileName=Input_File_Path, Pkt_len=256)
+        self.epy_block_0 = epy_block_0.blk(FileName=Input_File_Path, Pkt_len=2048)
         self.digital_symbol_sync_xx_0_0 = digital.symbol_sync_cc(
             digital.TED_SIGNAL_TIMES_SLOPE_ML,
             sps,
@@ -467,7 +467,7 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(2, 1, "", False, gr.GR_MSB_FIRST)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, Output_File_Path, False)
         self.blocks_file_sink_0.set_unbuffered(True)
-        self.analog_agc_xx_0 = analog.agc_cc((1e-5), 1.0, 1.0, 2)
+        self.analog_agc_xx_0 = analog.agc_cc(0.0001, 1.0, 1.0, 2)
 
 
         ##################################################

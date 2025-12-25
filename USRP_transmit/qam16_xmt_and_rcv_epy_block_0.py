@@ -26,6 +26,8 @@ class blk(gr.sync_block):
             name='EPB: File Source to Tagged Stream',
             in_sig=None,
             out_sig=[np.uint8])
+        
+        
         self.FileName = FileName
         self.Pkt_len = Pkt_len
         self.state = 0      # idle state
@@ -33,35 +35,53 @@ class blk(gr.sync_block):
         self.indx = 0
         self._debug = 0     # debug
         self.data = ""
-
+        
+        self.set_min_noutput_items(4096)
+        
         if (os.path.exists(self.FileName)):
             # open input file
             self.f_in = open (self.FileName, 'rb')
             self._eof = False
             if (self._debug):
-                print ("File name:", self.FileName)
+                print ("[EPB encode] File name:", self.FileName)
             self.state = 1
         else:
-            print(self.FileName, 'does not exist')
+            print('[EPB encode] ', self.FileName, 'does not exist')
             self._eof = True
             self.state = 0
 
-        self.char_list = [37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]
+        # 交替的 pattern，確保 QPSK 星座圖有對角線跳變
+        # 37 是 '%', 93 是 ']' 保持不變作為邊界
+        # 中間填充 200 個位元組的交替數據
+        pattern = [255, 0, 255, 0, 240, 15, 240, 15] * 25  # 混合 pattern
+        
+        self.char_list = [37] + pattern + [93]
         self.c_len = len (self.char_list)
-        # print (self.c_len)
+        print ("[EPB encode] c_len: ", self.c_len)
         self.filler = [37,85,85,85, 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]
         self.f_len = len (self.filler)
 
+    def forecast(self, noutput_items, ninput_items_required):
+        # 告訴 scheduler 我們需要至少 512 bytes 的輸出空間
+        noutput_items = max(512, noutput_items)
+        
     def work(self, input_items, output_items):
-
+        # 獲取當前可用的輸出空間長度
+        n_out = len(output_items[0])
+        
         if (self.state == 0):
             # idle
             return (0)
 
         elif (self.state == 1):
+            # 如果空間不夠寫入前導碼，就 return 0，等待排程器給更多空間
+            if n_out < self.c_len:
+                print("n_out < c_len")
+                return 0
+                
             # send preamble
             if (self._debug):
-                print ("state = 1", self.pre_count)
+                print ("[EPB encode] state = 1", self.pre_count)
             key1 = pmt.intern("packet_len")
             val1 = pmt.from_long(self.c_len)
             self.add_item_tag(0, # Write to output port 0
@@ -75,7 +95,7 @@ class blk(gr.sync_block):
                 output_items[0][i] = self.char_list[i]
                 i += 1
             self.pre_count += 1
-            if (self.pre_count > 64):
+            if (self.pre_count > 128):
                 self.pre_count = 0
                 self.state = 2      # send msg
             return (self.c_len)
@@ -85,7 +105,7 @@ class blk(gr.sync_block):
                 buff = self.f_in.read (self.Pkt_len)
                 b_len = len(buff)
                 if b_len == 0:
-                    print ('End of file')
+                    print ('[EPB encode] End of file')
                     self._eof = True
                     self.f_in.close()
                     self.state = 3      # send file name
@@ -95,7 +115,7 @@ class blk(gr.sync_block):
                 encoded = base64.b64encode (buff)
                 e_len = len(encoded)
                 if (self._debug):
-                    print ('b64 length =', e_len)
+                    print ('[EPB encode] b64 length =', e_len)
                 key0 = pmt.intern("packet_len")
                 val0 = pmt.from_long(e_len)
                 self.add_item_tag(0, # Write to output port 0
@@ -136,7 +156,7 @@ class blk(gr.sync_block):
         elif (self.state == 4):
             # send post filler
             if (self._debug):
-                print ("state = 4", self.pre_count)
+                print ("[EPB encode] state = 4", self.pre_count)
             key1 = pmt.intern("packet_len")
             val1 = pmt.from_long(self.f_len)
             self.add_item_tag(0, # Write to output port 0
@@ -156,4 +176,5 @@ class blk(gr.sync_block):
             return (self.f_len)
 
         return (0)
+
 

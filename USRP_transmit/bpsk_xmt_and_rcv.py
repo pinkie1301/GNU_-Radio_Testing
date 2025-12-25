@@ -71,7 +71,7 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         ##################################################
         self.samp_rate = samp_rate = 128e3
         self.access_key = access_key = '11100001010110101110100010010011'
-        self.usrp_rate = usrp_rate = 256e3
+        self.usrp_rate = usrp_rate = 1024e3
         self.tx_gain = tx_gain = 30
         self.thresh = thresh = 1
         self.sps = sps = 4
@@ -84,9 +84,9 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.center_freq = center_freq = 915e6
         self.bpsk = bpsk = digital.constellation_bpsk().base()
         self.bpsk.set_npwr(1.0)
-        self.Output_File_Path = Output_File_Path = "./outputs/output_bpsk.png"
+        self.Output_File_Path = Output_File_Path = "./outputs/output_bpsk.jpg"
         self.MTU = MTU = 1500
-        self.Input_File_Path = Input_File_Path = "./inputs/input_img.png"
+        self.Input_File_Path = Input_File_Path = "./inputs/input_img_sheep.jpg"
 
         ##################################################
         # Blocks
@@ -416,7 +416,7 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.pdu_tagged_stream_to_pdu_0 = pdu.tagged_stream_to_pdu(gr.types.byte_t, 'packet_len')
         self.pdu_pdu_to_tagged_stream_0 = pdu.pdu_to_tagged_stream(gr.types.byte_t, 'packet_len')
         self.epy_block_0_0 = epy_block_0_0.blk()
-        self.epy_block_0 = epy_block_0.blk(FileName=Input_File_Path, Pkt_len=256)
+        self.epy_block_0 = epy_block_0.blk(FileName=Input_File_Path, Pkt_len=1024)
         self.digital_symbol_sync_xx_0 = digital.symbol_sync_cc(
             digital.TED_MUELLER_AND_MULLER,
             sps,
