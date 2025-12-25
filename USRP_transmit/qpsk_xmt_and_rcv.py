@@ -90,10 +90,10 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.excess_bw = excess_bw = 0.35
         self.center_freq = center_freq = 2.4e9
         self.b210_ID_0 = b210_ID_0 = "serial=327543A"
-        self.Output_File_Path = Output_File_Path = "./outputs/output_qpsk.png"
+        self.Output_File_Path = Output_File_Path = "./outputs/output_qpsk.jpg"
         self.NS = NS = 32768
         self.MTU = MTU = 1500
-        self.Input_File_Path = Input_File_Path = "./inputs/input_img.png"
+        self.Input_File_Path = Input_File_Path = "./inputs/input_img_sheep.jpg"
 
         ##################################################
         # Blocks
@@ -438,7 +438,7 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
             rrc_taps)
         self.digital_protocol_formatter_bb_0 = digital.protocol_formatter_bb(hdr_format, "packet_len")
         self.digital_map_bb_0 = digital.map_bb([0,1,2,3])
-        self.digital_linear_equalizer_0 = digital.linear_equalizer(15, 4, variable_adaptive_algorithm_0, True, [ ], 'corr_est')
+        self.digital_linear_equalizer_0 = digital.linear_equalizer(15, 2, variable_adaptive_algorithm_0, True, [ ], 'corr_est')
         self.digital_fll_band_edge_cc_0 = digital.fll_band_edge_cc(sps, excess_bw, 44, phase_bw)
         self.digital_diff_decoder_bb_0 = digital.diff_decoder_bb(4, digital.DIFF_DIFFERENTIAL)
         self.digital_crc32_bb_0_0 = digital.crc32_bb(True, "packet_len", True)

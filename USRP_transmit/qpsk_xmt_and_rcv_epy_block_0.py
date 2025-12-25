@@ -35,7 +35,9 @@ class blk(gr.sync_block):
         self.indx = 0
         self._debug = 0     # debug
         self.data = ""
-
+        
+        self.set_min_noutput_items(4096)
+        
         if (os.path.exists(self.FileName)):
             # open input file
             self.f_in = open (self.FileName, 'rb')
@@ -64,12 +66,19 @@ class blk(gr.sync_block):
         noutput_items = max(512, noutput_items)
         
     def work(self, input_items, output_items):
-
+        # 獲取當前可用的輸出空間長度
+        n_out = len(output_items[0])
+        
         if (self.state == 0):
             # idle
             return (0)
 
         elif (self.state == 1):
+            # 如果空間不夠寫入前導碼，就 return 0，等待排程器給更多空間
+            if n_out < self.c_len:
+                print("n_out < c_len")
+                return 0
+                
             # send preamble
             if (self._debug):
                 print ("[EPB encode] state = 1", self.pre_count)

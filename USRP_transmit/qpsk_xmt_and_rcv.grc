@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"./inputs/input_img.png"'
+    value: '"./inputs/input_img_sheep.jpg"'
   states:
     bus_sink: false
     bus_source: false
@@ -73,7 +73,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"./outputs/output_qpsk.png"'
+    value: '"./outputs/output_qpsk.jpg"'
   states:
     bus_sink: false
     bus_source: false
@@ -478,7 +478,7 @@ blocks:
     maximum: '0.1'
     maxoutbuf: '0'
     minoutbuf: '0'
-    samples_per_second: samp_rate
+    samples_per_second: usrp_rate
     type: complex
     vlen: '1'
   states:
@@ -785,29 +785,35 @@ blocks:
       \   \n        self.FileName = FileName\n        self.Pkt_len = Pkt_len\n   \
       \     self.state = 0      # idle state\n        self.pre_count = 0\n       \
       \ self.indx = 0\n        self._debug = 0     # debug\n        self.data = \"\
-      \"\n\n        if (os.path.exists(self.FileName)):\n            # open input\
-      \ file\n            self.f_in = open (self.FileName, 'rb')\n            self._eof\
-      \ = False\n            if (self._debug):\n                print (\"[EPB encode]\
-      \ File name:\", self.FileName)\n            self.state = 1\n        else:\n\
-      \            print('[EPB encode] ', self.FileName, 'does not exist')\n     \
-      \       self._eof = True\n            self.state = 0\n\n        # \u4EA4\u66FF\
-      \u7684 pattern\uFF0C\u78BA\u4FDD QPSK \u661F\u5EA7\u5716\u6709\u5C0D\u89D2\u7DDA\
-      \u8DF3\u8B8A\n        # 37 \u662F '%', 93 \u662F ']' \u4FDD\u6301\u4E0D\u8B8A\
-      \u4F5C\u70BA\u908A\u754C\n        # \u4E2D\u9593\u586B\u5145 200 \u500B\u4F4D\
-      \u5143\u7D44\u7684\u4EA4\u66FF\u6578\u64DA\n        pattern = [255, 0, 255,\
-      \ 0, 240, 15, 240, 15] * 25  # \u6DF7\u5408 pattern\n        \n        self.char_list\
-      \ = [37] + pattern + [93]\n        self.c_len = len (self.char_list)\n     \
-      \   print (\"[EPB encode] c_len: \", self.c_len)\n        self.filler = [37,85,85,85,\
-      \ 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
-      \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]\n        self.f_len\
-      \ = len (self.filler)\n\n    def forecast(self, noutput_items, ninput_items_required):\n\
-      \        # \u544A\u8A34 scheduler \u6211\u5011\u9700\u8981\u81F3\u5C11 512 bytes\
-      \ \u7684\u8F38\u51FA\u7A7A\u9593\n        noutput_items = max(512, noutput_items)\n\
-      \        \n    def work(self, input_items, output_items):\n\n        if (self.state\
-      \ == 0):\n            # idle\n            return (0)\n\n        elif (self.state\
-      \ == 1):\n            # send preamble\n            if (self._debug):\n     \
-      \           print (\"[EPB encode] state = 1\", self.pre_count)\n           \
-      \ key1 = pmt.intern(\"packet_len\")\n            val1 = pmt.from_long(self.c_len)\n\
+      \"\n        \n        self.set_min_noutput_items(4096)\n        \n        if\
+      \ (os.path.exists(self.FileName)):\n            # open input file\n        \
+      \    self.f_in = open (self.FileName, 'rb')\n            self._eof = False\n\
+      \            if (self._debug):\n                print (\"[EPB encode] File name:\"\
+      , self.FileName)\n            self.state = 1\n        else:\n            print('[EPB\
+      \ encode] ', self.FileName, 'does not exist')\n            self._eof = True\n\
+      \            self.state = 0\n\n        # \u4EA4\u66FF\u7684 pattern\uFF0C\u78BA\
+      \u4FDD QPSK \u661F\u5EA7\u5716\u6709\u5C0D\u89D2\u7DDA\u8DF3\u8B8A\n       \
+      \ # 37 \u662F '%', 93 \u662F ']' \u4FDD\u6301\u4E0D\u8B8A\u4F5C\u70BA\u908A\u754C\
+      \n        # \u4E2D\u9593\u586B\u5145 200 \u500B\u4F4D\u5143\u7D44\u7684\u4EA4\
+      \u66FF\u6578\u64DA\n        pattern = [255, 0, 255, 0, 240, 15, 240, 15] * 25\
+      \  # \u6DF7\u5408 pattern\n        \n        self.char_list = [37] + pattern\
+      \ + [93]\n        self.c_len = len (self.char_list)\n        print (\"[EPB encode]\
+      \ c_len: \", self.c_len)\n        self.filler = [37,85,85,85, 35,69,79,70, 85,85,85,85,85,85,85,85,\
+      \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
+      \ 85,85,85,93]\n        self.f_len = len (self.filler)\n\n    def forecast(self,\
+      \ noutput_items, ninput_items_required):\n        # \u544A\u8A34 scheduler \u6211\
+      \u5011\u9700\u8981\u81F3\u5C11 512 bytes \u7684\u8F38\u51FA\u7A7A\u9593\n  \
+      \      noutput_items = max(512, noutput_items)\n        \n    def work(self,\
+      \ input_items, output_items):\n        # \u7372\u53D6\u7576\u524D\u53EF\u7528\
+      \u7684\u8F38\u51FA\u7A7A\u9593\u9577\u5EA6\n        n_out = len(output_items[0])\n\
+      \        \n        if (self.state == 0):\n            # idle\n            return\
+      \ (0)\n\n        elif (self.state == 1):\n            # \u5982\u679C\u7A7A\u9593\
+      \u4E0D\u5920\u5BEB\u5165\u524D\u5C0E\u78BC\uFF0C\u5C31 return 0\uFF0C\u7B49\u5F85\
+      \u6392\u7A0B\u5668\u7D66\u66F4\u591A\u7A7A\u9593\n            if n_out < self.c_len:\n\
+      \                print(\"n_out < c_len\")\n                return 0\n      \
+      \          \n            # send preamble\n            if (self._debug):\n  \
+      \              print (\"[EPB encode] state = 1\", self.pre_count)\n        \
+      \    key1 = pmt.intern(\"packet_len\")\n            val1 = pmt.from_long(self.c_len)\n\
       \            self.add_item_tag(0, # Write to output port 0\n               \
       \ self.indx,   # Index of the tag\n                key1,   # Key of the tag\n\
       \                val1    # Value of the tag\n                )\n           \
