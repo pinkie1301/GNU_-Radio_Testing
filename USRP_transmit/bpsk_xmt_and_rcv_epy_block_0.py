@@ -81,7 +81,7 @@ class blk(gr.sync_block):
                 output_items[0][i] = self.char_list[i]
                 i += 1
             self.pre_count += 1
-            if (self.pre_count > 64):
+            if (self.pre_count > 128):
                 self.pre_count = 0
                 self.state = 2      # send msg
             return (self.c_len)

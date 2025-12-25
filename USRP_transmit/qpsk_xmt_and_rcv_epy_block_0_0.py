@@ -35,7 +35,12 @@ class blk(gr.sync_block):
 
         else:
             # decode Base64
-            data = base64.b64decode(buff)
+            try:
+                data = base64.b64decode(buff)
+            except Exception as e:
+                # 如果解碼失敗（通常是因為雜訊），就忽略這個封包
+                print("[EPB decode] Corrupt packet ignored") 
+                return
             if (_debug == 1):
                 print ("[EPB decode] data =", data)
             pdu = pmt.cons(pmt.PMT_NIL, pmt.init_u8vector(len(data),list(data)))

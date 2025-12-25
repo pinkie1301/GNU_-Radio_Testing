@@ -69,18 +69,6 @@ blocks:
     coordinate: [936, 8.0]
     rotation: 0
     state: enabled
-- name: Selector
-  id: variable
-  parameters:
-    comment: "0: \u6E2C\u8A66\u7528\n1: USRP"
-    value: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [16, 272.0]
-    rotation: 0
-    state: enabled
 - name: access_key
   id: variable
   parameters:
@@ -457,52 +445,6 @@ blocks:
     coordinate: [992, 688.0]
     rotation: 0
     state: true
-- name: blocks_selector_0
-  id: blocks_selector
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: "0: \u6E2C\u8A66\u7528\n1: USRP"
-    enabled: 'True'
-    input_index: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '1'
-    num_outputs: '2'
-    output_index: Selector
-    showports: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [680, 1480.0]
-    rotation: 0
-    state: enabled
-- name: blocks_selector_1
-  id: blocks_selector
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    enabled: 'True'
-    input_index: Selector
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    num_outputs: '1'
-    output_index: '0'
-    showports: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [512, 224.0]
-    rotation: 0
-    state: enabled
 - name: blocks_tagged_stream_align_0
   id: blocks_tagged_stream_align
   parameters:
@@ -541,6 +483,27 @@ blocks:
     coordinate: [944, 1264.0]
     rotation: 0
     state: enabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 184.0]
+    rotation: 0
+    state: disabled
 - name: blocks_uchar_to_float_0_0
   id: blocks_uchar_to_float
   parameters:
@@ -858,7 +821,7 @@ blocks:
       \                val1    # Value of the tag\n                )\n           \
       \ self.indx += self.c_len\n            i = 0\n            while (i < self.c_len):\n\
       \                output_items[0][i] = self.char_list[i]\n                i +=\
-      \ 1\n            self.pre_count += 1\n            if (self.pre_count > 64):\n\
+      \ 1\n            self.pre_count += 1\n            if (self.pre_count > 128):\n\
       \                self.pre_count = 0\n                self.state = 2      # send\
       \ msg\n            return (self.c_len)\n\n        elif (self.state == 2):\n\
       \            while (not (self._eof)):\n                buff = self.f_in.read\
@@ -2348,7 +2311,7 @@ blocks:
     bus_structure: null
     coordinate: [960, 1424.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_source_0
   id: virtual_source
   parameters:
@@ -2426,7 +2389,7 @@ blocks:
     bus_structure: null
     coordinate: [280, 192.0]
     rotation: 0
-    state: enabled
+    state: disabled
 
 connections:
 - [blocks_char_to_float_0_1, '0', blocks_integrate_xx_0, '0']
@@ -2436,19 +2399,18 @@ connections:
 - [blocks_repack_bits_bb_0_0, '0', blocks_uchar_to_float_0_0_0_0, '0']
 - [blocks_repack_bits_bb_0_0, '0', virtual_sink_1, '0']
 - [blocks_repack_bits_bb_1_0, '0', digital_crc32_bb_0_0, '0']
-- [blocks_selector_0, '0', virtual_sink_3, '0']
-- [blocks_selector_0, '1', uhd_usrp_sink_0, '0']
-- [blocks_selector_1, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_tagged_stream_align_0, '0', blocks_repack_bits_bb_1_0, '0']
 - [blocks_tagged_stream_align_0, '0', virtual_sink_2, '0']
 - [blocks_tagged_stream_mux_0, '0', virtual_sink_0_0_0, '0']
+- [blocks_throttle2_0, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_uchar_to_float_0_0, '0', qtgui_time_sink_x_0_2, '0']
 - [blocks_uchar_to_float_0_0_0, '0', qtgui_time_sink_x_0_0, '0']
 - [blocks_uchar_to_float_0_0_0_0, '0', qtgui_time_sink_x_0, '0']
 - [blocks_xor_xx_0, '0', blocks_char_to_float_0_1, '0']
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
-- [digital_constellation_modulator_0, '0', blocks_selector_0, '0']
 - [digital_constellation_modulator_0, '0', qtgui_const_sink_x_1, '0']
+- [digital_constellation_modulator_0, '0', uhd_usrp_sink_0, '0']
+- [digital_constellation_modulator_0, '0', virtual_sink_3, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_tagged_stream_align_0, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_uchar_to_float_0_0_0, '0']
 - [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
@@ -2467,14 +2429,14 @@ connections:
 - [epy_block_0_0, msg_out, pdu_pdu_to_tagged_stream_0, pdus]
 - [pdu_pdu_to_tagged_stream_0, '0', blocks_file_sink_0, '0']
 - [pdu_tagged_stream_to_pdu_0, pdus, epy_block_0_0, msg_in]
-- [uhd_usrp_source_0, '0', blocks_selector_1, '1']
+- [uhd_usrp_source_0, '0', digital_fll_band_edge_cc_0, '0']
 - [virtual_source_0, '0', digital_symbol_sync_xx_0, '0']
 - [virtual_source_0_0, '0', blocks_repack_bits_bb_0_0, '0']
 - [virtual_source_0_0, '0', digital_constellation_modulator_0, '0']
 - [virtual_source_1, '0', blocks_delay_0, '0']
 - [virtual_source_2, '0', digital_map_bb_0, '0']
 - [virtual_source_3, '0', blocks_xor_xx_0, '1']
-- [virtual_source_4, '0', blocks_selector_1, '0']
+- [virtual_source_4, '0', blocks_throttle2_0, '0']
 
 metadata:
   file_format: 1

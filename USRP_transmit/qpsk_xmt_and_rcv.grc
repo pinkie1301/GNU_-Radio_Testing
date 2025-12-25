@@ -109,7 +109,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 915e6
+    value: 2.4e9
   states:
     bus_sink: false
     bus_source: false
@@ -231,7 +231,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '30'
+    value: '50'
   states:
     bus_sink: false
     bus_source: false
@@ -279,7 +279,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '30'
+    value: '50'
   states:
     bus_sink: false
     bus_source: false
@@ -291,7 +291,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 256e3
+    value: 1024e3
   states:
     bus_sink: false
     bus_source: false
@@ -304,14 +304,12 @@ blocks:
   parameters:
     comment: 'CMA algo. for QPSK
 
-      default .0001 is too big
-
-      using =<.00002 instead'
+      Step size=.005 for samp_rate=1.024M'
     cons: qpsk
     delta: '10.0'
     ffactor: '0.99'
     modulus: '4'
-    step_size: '.000001'
+    step_size: '.0005'
     type: cma
   states:
     bus_sink: false
@@ -332,26 +330,26 @@ blocks:
     coordinate: [648, 96.0]
     rotation: 0
     state: enabled
-- name: analog_random_source_x_0
-  id: analog_random_source_x
+- name: analog_agc_xx_0
+  id: analog_agc_xx
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    max: '255'
+    gain: '1.0'
+    max_gain: '65536'
     maxoutbuf: '0'
-    min: '0'
     minoutbuf: '0'
-    num_samps: NS
-    repeat: 'True'
-    type: byte
+    rate: 1e-4
+    reference: '1.0'
+    type: complex
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 1304.0]
+    coordinate: [360, 344.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_file_sink_0
   id: blocks_file_sink
   parameters:
@@ -409,7 +407,7 @@ blocks:
     bus_structure: null
     coordinate: [408, 1864.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_repack_bits_bb_1_0
   id: blocks_repack_bits_bb
   parameters:
@@ -430,44 +428,6 @@ blocks:
     coordinate: [944, 808.0]
     rotation: 0
     state: true
-- name: blocks_stream_to_tagged_stream_0
-  id: blocks_stream_to_tagged_stream
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    len_tag_key: '"packet_len"'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    packet_len: '256'
-    type: byte
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [448, 1304.0]
-    rotation: 0
-    state: disabled
-- name: blocks_stream_to_tagged_stream_0_0
-  id: blocks_stream_to_tagged_stream
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    len_tag_key: '"packet_len"'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    packet_len: '52'
-    type: byte
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [448, 1224.0]
-    rotation: 0
-    state: disabled
 - name: blocks_tag_debug_0
   id: blocks_tag_debug
   parameters:
@@ -507,24 +467,25 @@ blocks:
     coordinate: [1184, 1504.0]
     rotation: 0
     state: true
-- name: blocks_tagged_stream_mux_0_0
-  id: blocks_tagged_stream_mux
+- name: blocks_throttle2_0
+  id: blocks_throttle2
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    lengthtagname: packet_len
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
     maxoutbuf: '0'
     minoutbuf: '0'
-    ninputs: '2'
-    tag_preserve_head_pos: '0'
-    type: byte
+    samples_per_second: samp_rate
+    type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [736, 1264.0]
+    coordinate: [296, 200.0]
     rotation: 0
     state: disabled
 - name: blocks_uchar_to_float_0_0
@@ -541,7 +502,7 @@ blocks:
     bus_structure: null
     coordinate: [264, 912.0]
     rotation: 180
-    state: disabled
+    state: enabled
 - name: blocks_uchar_to_float_0_0_0
   id: blocks_uchar_to_float
   parameters:
@@ -556,7 +517,7 @@ blocks:
     bus_structure: null
     coordinate: [776, 984.0]
     rotation: 180
-    state: disabled
+    state: enabled
 - name: blocks_uchar_to_float_0_0_0_0
   id: blocks_uchar_to_float
   parameters:
@@ -571,27 +532,7 @@ blocks:
     bus_structure: null
     coordinate: [632, 1880.0]
     rotation: 0
-    state: disabled
-- name: blocks_vector_source_x_0
-  id: blocks_vector_source_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    repeat: 'True'
-    tags: ''
-    type: byte
-    vector: '[37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,93]'
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [208, 1208.0]
-    rotation: 0
-    state: disabled
+    state: enabled
 - name: digital_constellation_decoder_cb_0
   id: digital_constellation_decoder_cb
   parameters:
@@ -744,7 +685,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [488, 248.0]
+    coordinate: [536, 248.0]
     rotation: 0
     state: enabled
 - name: digital_linear_equalizer_0
@@ -832,7 +773,7 @@ blocks:
   id: epy_block
   parameters:
     FileName: Input_File_Path
-    Pkt_len: '1024'
+    Pkt_len: '256'
     _source_code: "\"\"\"\nEmbedded Python Block: File Source to Tagged Stream\n\"\
       \"\"\n\nimport numpy as np\nfrom gnuradio import gr\nimport time\nimport pmt\n\
       import os.path\nimport sys\nimport base64\n\n\"\"\"\nState definitions\n   \
@@ -849,15 +790,19 @@ blocks:
       \ = False\n            if (self._debug):\n                print (\"[EPB encode]\
       \ File name:\", self.FileName)\n            self.state = 1\n        else:\n\
       \            print('[EPB encode] ', self.FileName, 'does not exist')\n     \
-      \       self._eof = True\n            self.state = 0\n\n        self.char_list\
-      \ = [37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
-      \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]\n        self.c_len\
-      \ = len (self.char_list)\n        print (\"[EPB encode] c_len: \", self.c_len)\n\
-      \        self.filler = [37,85,85,85, 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
+      \       self._eof = True\n            self.state = 0\n\n        # \u4EA4\u66FF\
+      \u7684 pattern\uFF0C\u78BA\u4FDD QPSK \u661F\u5EA7\u5716\u6709\u5C0D\u89D2\u7DDA\
+      \u8DF3\u8B8A\n        # 37 \u662F '%', 93 \u662F ']' \u4FDD\u6301\u4E0D\u8B8A\
+      \u4F5C\u70BA\u908A\u754C\n        # \u4E2D\u9593\u586B\u5145 200 \u500B\u4F4D\
+      \u5143\u7D44\u7684\u4EA4\u66FF\u6578\u64DA\n        pattern = [255, 0, 255,\
+      \ 0, 240, 15, 240, 15] * 25  # \u6DF7\u5408 pattern\n        \n        self.char_list\
+      \ = [37] + pattern + [93]\n        self.c_len = len (self.char_list)\n     \
+      \   print (\"[EPB encode] c_len: \", self.c_len)\n        self.filler = [37,85,85,85,\
+      \ 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,\
       \ 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]\n        self.f_len\
       \ = len (self.filler)\n\n    def forecast(self, noutput_items, ninput_items_required):\n\
       \        # \u544A\u8A34 scheduler \u6211\u5011\u9700\u8981\u81F3\u5C11 512 bytes\
-      \ \u7684\u8F38\u51FA\u7A7A\u9593\n        noutput_items = max(2048, noutput_items)\n\
+      \ \u7684\u8F38\u51FA\u7A7A\u9593\n        noutput_items = max(512, noutput_items)\n\
       \        \n    def work(self, input_items, output_items):\n\n        if (self.state\
       \ == 0):\n            # idle\n            return (0)\n\n        elif (self.state\
       \ == 1):\n            # send preamble\n            if (self._debug):\n     \
@@ -868,7 +813,7 @@ blocks:
       \                val1    # Value of the tag\n                )\n           \
       \ self.indx += self.c_len\n            i = 0\n            while (i < self.c_len):\n\
       \                output_items[0][i] = self.char_list[i]\n                i +=\
-      \ 1\n            self.pre_count += 1\n            if (self.pre_count > 64):\n\
+      \ 1\n            self.pre_count += 1\n            if (self.pre_count > 128):\n\
       \                self.pre_count = 0\n                self.state = 2      # send\
       \ msg\n            return (self.c_len)\n\n        elif (self.state == 2):\n\
       \            while (not (self._eof)):\n                buff = self.f_in.read\
@@ -907,7 +852,7 @@ blocks:
       \                output_items[0][i] = self.filler[i]\n                i += 1\n\
       \            self.pre_count += 1\n            if (self.pre_count > 16):\n  \
       \              self.pre_count = 0\n                self.state = 0      # idle\n\
-      \            return (self.f_len)\n\n        return (0)\n\n"
+      \            return (self.f_len)\n\n        return (0)\n\n\n"
     affinity: ''
     alias: ''
     comment: 'Filename is specified on the command line, e.g.:
@@ -958,10 +903,14 @@ blocks:
       \ buff =\", buff, b_len)\n                intlist = np.frombuffer(buff, dtype=np.uint8)\n\
       \                ofn = ''.join(chr(i) for i in intlist[8:])  \n            \
       \    print (\"[EPB decode] Transmitted file name:\",ofn)\n\n        else:\n\
-      \            # decode Base64\n            data = base64.b64decode(buff)\n  \
-      \          if (_debug == 1):\n                print (\"[EPB decode] data =\"\
-      , data)\n            pdu = pmt.cons(pmt.PMT_NIL, pmt.init_u8vector(len(data),list(data)))\n\
-      \            self.message_port_pub(pmt.intern('msg_out'), pdu)\n\n"
+      \            # decode Base64\n            try:\n                data = base64.b64decode(buff)\n\
+      \            except Exception as e:\n                # \u5982\u679C\u89E3\u78BC\
+      \u5931\u6557\uFF08\u901A\u5E38\u662F\u56E0\u70BA\u96DC\u8A0A\uFF09\uFF0C\u5C31\
+      \u5FFD\u7565\u9019\u500B\u5C01\u5305\n                print(\"[EPB decode] Corrupt\
+      \ packet ignored\") \n                return\n            if (_debug == 1):\n\
+      \                print (\"[EPB decode] data =\", data)\n            pdu = pmt.cons(pmt.PMT_NIL,\
+      \ pmt.init_u8vector(len(data),list(data)))\n            self.message_port_pub(pmt.intern('msg_out'),\
+      \ pdu)\n\n"
     affinity: ''
     alias: ''
     comment: 'Strip preamble and postamble
@@ -1103,7 +1052,7 @@ blocks:
     bus_structure: null
     coordinate: [632, 640.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_const_sink_x_1_0
   id: qtgui_const_sink_x
   parameters:
@@ -1195,7 +1144,7 @@ blocks:
     bus_structure: null
     coordinate: [848, 1608.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -1276,7 +1225,7 @@ blocks:
     bus_structure: null
     coordinate: [792, 416.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_time_sink_x_0
   id: qtgui_time_sink_x
   parameters:
@@ -1373,7 +1322,7 @@ blocks:
     bus_structure: null
     coordinate: [848, 1888.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_time_sink_x_0_0
   id: qtgui_time_sink_x
   parameters:
@@ -1470,7 +1419,7 @@ blocks:
     bus_structure: null
     coordinate: [568, 952.0]
     rotation: 180
-    state: disabled
+    state: enabled
 - name: qtgui_time_sink_x_0_2
   id: qtgui_time_sink_x
   parameters:
@@ -1567,7 +1516,7 @@ blocks:
     bus_structure: null
     coordinate: [72, 880.0]
     rotation: 180
-    state: disabled
+    state: enabled
 - name: uhd_usrp_sink_0
   id: uhd_usrp_sink
   parameters:
@@ -1842,7 +1791,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [848, 1728.0]
+    coordinate: [960, 1752.0]
     rotation: 0
     state: enabled
 - name: uhd_usrp_source_0
@@ -2278,7 +2227,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 268.0]
+    coordinate: [104, 344.0]
     rotation: 0
     state: enabled
 - name: virtual_sink_0
@@ -2320,17 +2269,17 @@ blocks:
     coordinate: [1432, 1512.0]
     rotation: 0
     state: true
-- name: virtual_sink_1
+- name: virtual_sink_2
   id: virtual_sink
   parameters:
     alias: ''
     comment: ''
-    stream_id: v1
+    stream_id: TX_RX
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [976, 1272.0]
+    coordinate: [840, 1696.0]
     rotation: 0
     state: disabled
 - name: virtual_source_0
@@ -2359,19 +2308,6 @@ blocks:
     coordinate: [200, 1720.0]
     rotation: 0
     state: true
-- name: virtual_source_1
-  id: virtual_source
-  parameters:
-    alias: ''
-    comment: ''
-    stream_id: v1
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [448, 1376.0]
-    rotation: 0
-    state: disabled
 - name: virtual_source_2
   id: virtual_source
   parameters:
@@ -2385,23 +2321,34 @@ blocks:
     coordinate: [136, 816.0]
     rotation: 0
     state: true
+- name: virtual_source_3
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: TX_RX
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 208.0]
+    rotation: 0
+    state: disabled
 
 connections:
-- [analog_random_source_x_0, '0', blocks_stream_to_tagged_stream_0, '0']
+- [analog_agc_xx_0, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_repack_bits_bb_0, '0', digital_correlate_access_code_xx_ts_0, '0']
 - [blocks_repack_bits_bb_0_0, '0', blocks_uchar_to_float_0_0_0_0, '0']
 - [blocks_repack_bits_bb_1_0, '0', digital_crc32_bb_0_0, '0']
-- [blocks_stream_to_tagged_stream_0, '0', blocks_tagged_stream_mux_0_0, '1']
-- [blocks_stream_to_tagged_stream_0_0, '0', blocks_tagged_stream_mux_0_0, '0']
 - [blocks_tagged_stream_mux_0, '0', virtual_sink_0_0_0, '0']
-- [blocks_tagged_stream_mux_0_0, '0', virtual_sink_1, '0']
+- [blocks_throttle2_0, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_uchar_to_float_0_0, '0', qtgui_time_sink_x_0_2, '0']
 - [blocks_uchar_to_float_0_0_0, '0', qtgui_time_sink_x_0_0, '0']
 - [blocks_uchar_to_float_0_0_0_0, '0', qtgui_time_sink_x_0, '0']
-- [blocks_vector_source_x_0, '0', blocks_stream_to_tagged_stream_0_0, '0']
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
 - [digital_constellation_modulator_0, '0', qtgui_const_sink_x_1_0, '0']
 - [digital_constellation_modulator_0, '0', uhd_usrp_sink_0, '0']
+- [digital_constellation_modulator_0, '0', virtual_sink_2, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_repack_bits_bb_1_0, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_tag_debug_0, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_uchar_to_float_0_0_0, '0']
@@ -2422,12 +2369,12 @@ connections:
 - [epy_block_0_0, msg_out, pdu_pdu_to_tagged_stream_0, pdus]
 - [pdu_pdu_to_tagged_stream_0, '0', blocks_file_sink_0, '0']
 - [pdu_tagged_stream_to_pdu_0, pdus, epy_block_0_0, msg_in]
-- [uhd_usrp_source_0, '0', digital_fll_band_edge_cc_0, '0']
+- [uhd_usrp_source_0, '0', analog_agc_xx_0, '0']
 - [virtual_source_0, '0', digital_costas_loop_cc_0, '0']
 - [virtual_source_0_0, '0', blocks_repack_bits_bb_0_0, '0']
 - [virtual_source_0_0, '0', digital_constellation_modulator_0, '0']
-- [virtual_source_1, '0', digital_crc32_bb_0, '0']
 - [virtual_source_2, '0', digital_map_bb_0, '0']
+- [virtual_source_3, '0', blocks_throttle2_0, '0']
 
 metadata:
   file_format: 1

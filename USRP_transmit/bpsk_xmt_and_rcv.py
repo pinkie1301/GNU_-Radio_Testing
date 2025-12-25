@@ -84,7 +84,6 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.center_freq = center_freq = 915e6
         self.bpsk = bpsk = digital.constellation_bpsk().base()
         self.bpsk.set_npwr(1.0)
-        self.Selector = Selector = 0
         self.Output_File_Path = Output_File_Path = "./outputs/output_bpsk.png"
         self.MTU = MTU = 1500
         self.Input_File_Path = Input_File_Path = "./inputs/input_img.png"
@@ -455,10 +454,6 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.blocks_uchar_to_float_0_0 = blocks.uchar_to_float()
         self.blocks_tagged_stream_mux_0 = blocks.tagged_stream_mux(gr.sizeof_char*1, 'packet_len', 0)
         self.blocks_tagged_stream_align_0 = blocks.tagged_stream_align(gr.sizeof_char*1, 'packet_len')
-        self.blocks_selector_1 = blocks.selector(gr.sizeof_gr_complex*1,Selector,0)
-        self.blocks_selector_1.set_enabled(True)
-        self.blocks_selector_0 = blocks.selector(gr.sizeof_gr_complex*1,0,Selector)
-        self.blocks_selector_0.set_enabled(True)
         self.blocks_repack_bits_bb_1_0 = blocks.repack_bits_bb(1, 8, "packet_len", False, gr.GR_MSB_FIRST)
         self.blocks_repack_bits_bb_0_0 = blocks.repack_bits_bb(8, 1, "packet_len", False, gr.GR_MSB_FIRST)
         self.blocks_multiply_const_vxx_1 = blocks.multiply_const_ff((1e-3))
@@ -514,9 +509,6 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_repack_bits_bb_0_0, 0), (self.blocks_delay_0, 0))
         self.connect((self.blocks_repack_bits_bb_0_0, 0), (self.blocks_uchar_to_float_0_0_0_0, 0))
         self.connect((self.blocks_repack_bits_bb_1_0, 0), (self.digital_crc32_bb_0_0, 0))
-        self.connect((self.blocks_selector_0, 0), (self.blocks_selector_1, 0))
-        self.connect((self.blocks_selector_0, 1), (self.uhd_usrp_sink_0, 0))
-        self.connect((self.blocks_selector_1, 0), (self.digital_fll_band_edge_cc_0, 0))
         self.connect((self.blocks_tagged_stream_align_0, 0), (self.blocks_repack_bits_bb_1_0, 0))
         self.connect((self.blocks_tagged_stream_align_0, 0), (self.blocks_xor_xx_0, 1))
         self.connect((self.blocks_tagged_stream_mux_0, 0), (self.blocks_repack_bits_bb_0_0, 0))
@@ -526,8 +518,8 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_uchar_to_float_0_0_0_0, 0), (self.qtgui_time_sink_x_0, 0))
         self.connect((self.blocks_xor_xx_0, 0), (self.blocks_char_to_float_0_1, 0))
         self.connect((self.digital_constellation_decoder_cb_0, 0), (self.digital_diff_decoder_bb_0, 0))
-        self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_selector_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.qtgui_const_sink_x_1, 0))
+        self.connect((self.digital_constellation_modulator_0, 0), (self.uhd_usrp_sink_0, 0))
         self.connect((self.digital_correlate_access_code_xx_ts_0, 0), (self.blocks_tagged_stream_align_0, 0))
         self.connect((self.digital_correlate_access_code_xx_ts_0, 0), (self.blocks_uchar_to_float_0_0_0, 0))
         self.connect((self.digital_costas_loop_cc_0, 0), (self.digital_constellation_decoder_cb_0, 0))
@@ -544,7 +536,7 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.connect((self.digital_symbol_sync_xx_0, 0), (self.digital_costas_loop_cc_0, 0))
         self.connect((self.epy_block_0, 0), (self.digital_crc32_bb_0, 0))
         self.connect((self.pdu_pdu_to_tagged_stream_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_selector_1, 1))
+        self.connect((self.uhd_usrp_source_0, 0), (self.digital_fll_band_edge_cc_0, 0))
 
 
     def closeEvent(self, event):
@@ -657,14 +649,6 @@ class bpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
     def set_bpsk(self, bpsk):
         self.bpsk = bpsk
         self.digital_constellation_decoder_cb_0.set_constellation(self.bpsk)
-
-    def get_Selector(self):
-        return self.Selector
-
-    def set_Selector(self, Selector):
-        self.Selector = Selector
-        self.blocks_selector_0.set_output_index(self.Selector)
-        self.blocks_selector_1.set_input_index(self.Selector)
 
     def get_Output_File_Path(self):
         return self.Output_File_Path

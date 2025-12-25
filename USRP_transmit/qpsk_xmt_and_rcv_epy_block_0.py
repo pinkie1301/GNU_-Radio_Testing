@@ -48,7 +48,12 @@ class blk(gr.sync_block):
             self._eof = True
             self.state = 0
 
-        self.char_list = [37,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]
+        # 交替的 pattern，確保 QPSK 星座圖有對角線跳變
+        # 37 是 '%', 93 是 ']' 保持不變作為邊界
+        # 中間填充 200 個位元組的交替數據
+        pattern = [255, 0, 255, 0, 240, 15, 240, 15] * 25  # 混合 pattern
+        
+        self.char_list = [37] + pattern + [93]
         self.c_len = len (self.char_list)
         print ("[EPB encode] c_len: ", self.c_len)
         self.filler = [37,85,85,85, 35,69,79,70, 85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85, 85,85,85,93]
@@ -56,7 +61,7 @@ class blk(gr.sync_block):
 
     def forecast(self, noutput_items, ninput_items_required):
         # 告訴 scheduler 我們需要至少 512 bytes 的輸出空間
-        noutput_items = max(2048, noutput_items)
+        noutput_items = max(512, noutput_items)
         
     def work(self, input_items, output_items):
 
@@ -81,7 +86,7 @@ class blk(gr.sync_block):
                 output_items[0][i] = self.char_list[i]
                 i += 1
             self.pre_count += 1
-            if (self.pre_count > 64):
+            if (self.pre_count > 128):
                 self.pre_count = 0
                 self.state = 2      # send msg
             return (self.c_len)
@@ -162,4 +167,5 @@ class blk(gr.sync_block):
             return (self.f_len)
 
         return (0)
+
 
