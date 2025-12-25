@@ -1,1 +1,7 @@
 Wireless-communication-systems-Lab
+
+# 忽略所有 output 和 outputs 資料夾
+output/
+outputs/
+**/output/
+**/outputs/

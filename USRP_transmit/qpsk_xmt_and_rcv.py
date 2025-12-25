@@ -467,7 +467,7 @@ class qpsk_xmt_and_rcv(gr.top_block, Qt.QWidget):
         self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(2, 1, "", False, gr.GR_MSB_FIRST)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, Output_File_Path, False)
         self.blocks_file_sink_0.set_unbuffered(True)
-        self.analog_agc_xx_0 = analog.agc_cc((1e-4), 1.0, 1.0, 65536)
+        self.analog_agc_xx_0 = analog.agc_cc((1e-5), 1.0, 1.0, 2)
 
 
         ##################################################
